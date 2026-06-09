@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg5"
+   inkscape:export-filename="bitmap2.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="drawing.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="1.9830629"
+     inkscape:cx="288.94696"
+     inkscape:cy="109.17455"
+     inkscape:window-width="1920"
+     inkscape:window-height="1015"
+     inkscape:window-x="0"
+     inkscape:window-y="29"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showguides="false" />
+  <defs
+     id="defs2">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 256 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="512 : 256 : 1"
+       inkscape:persp3d-origin="256 : 170.66667 : 1"
+       id="perspective948" />
+    <rect
+       x="105.07124"
+       y="174.88816"
+       width="168.67369"
+       height="248.16728"
+       id="rect671" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient613">
+      <stop
+         style="stop-color:#00a8f0;stop-opacity:1"
+         offset="0"
+         id="stop609" />
+      <stop
+         style="stop-color:#6600ff;stop-opacity:1"
+         offset="1"
+         id="stop611" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient613"
+       id="linearGradient615"
+       x1="251.62367"
+       y1="32.28371"
+       x2="253.51285"
+       y2="481.52921"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <circle
+       style="fill:url(#linearGradient615);fill-opacity:1"
+       id="path111"
+       cx="256"
+       cy="255"
+       r="230" />
+    <text
+       xml:space="preserve"
+       id="text669"
+       style="white-space:pre;shape-inside:url(#rect671);fill:#00a8f0" />
+    <text
+       xml:space="preserve"
+       style="font-size:213.333px;fill:#ffffff"
+       x="4.5265579"
+       y="176.3414"
+       id="text880"><tspan
+         sodipodi:role="line"
+         id="tspan878"
+         x="4.5265579"
+         y="176.3414"
+         style="font-size:213.333px" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:321.688px;fill:#ffffff;stroke-width:1.50791"
+       x="63.596581"
+       y="383.69315"
+       id="text888"
+       transform="scale(1.0548488,0.94800317)"><tspan
+         sodipodi:role="line"
+         id="tspan886"
+         x="63.596581"
+         y="383.69315"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif;stroke-width:1.50791">N</tspan></text>
+    <rect
+       style="fill:#ffffff"
+       id="rect1002"
+       width="114.87725"
+       height="28.599308"
+       x="319"
+       y="335.20001" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:213.333px;font-family:sans-serif;-inkscape-font-specification:sans-serif;fill:#ffffff"
+       x="569.06665"
+       y="112.03105"
+       id="text1268"><tspan
+         sodipodi:role="line"
+         id="tspan1266"
+         x="569.06665"
+         y="112.03105" /></text>
+  </g>
+</svg>

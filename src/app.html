@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Notium – Local-first notes and knowledge manager with rich Markdown support." />
+  <title>Notium</title>
+  %sveltekit.head%
+  <script>
+    (function() {
+      // Theme
+      var stored = localStorage.getItem('notium-theme') || 'light';
+      var resolved = stored === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : stored;
+      document.documentElement.setAttribute('data-theme', resolved);
+
+      // Font size
+      var fontMap = {
+        xs: { editor: '12px', ui: '11px' },
+        sm: { editor: '13px', ui: '12px' },
+        md: { editor: '14px', ui: '13px' },
+        lg: { editor: '16px', ui: '14px' },
+        xl: { editor: '18px', ui: '15px' }
+      };
+      var fs = localStorage.getItem('notium-font-size') || 'md';
+      var fsVal = fontMap[fs] || fontMap['md'];
+      document.documentElement.style.setProperty('--editor-font-size', fsVal.editor);
+      document.documentElement.style.setProperty('--ui-font-size', fsVal.ui);
+    })();
+  </script>
+</head>
+
+<body data-sveltekit-preload-data="hover">
+  <div style="display: contents">%sveltekit.body%</div>
+</body>
+
+</html>
