@@ -17,6 +17,20 @@ pub struct Note {
     pub color: Option<String>,
 }
 
+// ── Image model ───────────────────────────────────────────────────────────────
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NoteImage {
+    pub id: String,
+    pub note_id: String,
+    pub mime_type: String,
+    /// Raw Base64 data (no data-URI prefix).
+    pub data_b64: String,
+    pub created_at: i64,
+}
+
 // ── Schema migration ───────────────────────────────────────────────────────────
 
 pub fn init_db(conn: &Connection) -> Result<()> {
@@ -34,11 +48,20 @@ pub fn init_db(conn: &Connection) -> Result<()> {
              updated_at INTEGER NOT NULL,
              is_pinned  INTEGER NOT NULL DEFAULT 0,
              color      TEXT
-         );",
+         );
+         CREATE TABLE IF NOT EXISTS note_images (
+             id         TEXT    PRIMARY KEY NOT NULL,
+             note_id    TEXT    NOT NULL,
+             mime_type  TEXT    NOT NULL DEFAULT 'image/png',
+             data_b64   TEXT    NOT NULL,
+             created_at INTEGER NOT NULL
+         );
+         CREATE INDEX IF NOT EXISTS idx_note_images_note_id
+             ON note_images (note_id);",
     )
 }
 
-// ── CRUD ──────────────────────────────────────────────────────────────────────
+// ── Note CRUD ─────────────────────────────────────────────────────────────────
 
 pub fn get_all_notes(conn: &Connection) -> Result<Vec<Note>> {
     let mut stmt = conn.prepare(
@@ -97,6 +120,43 @@ pub fn note_count(conn: &Connection) -> Result<i64> {
     conn.query_row("SELECT COUNT(*) FROM notes", [], |row| row.get(0))
 }
 
+// ── Image CRUD ────────────────────────────────────────────────────────────────
+
+/// Insert a new image record.
+pub fn insert_image(
+    conn: &Connection,
+    id: &str,
+    note_id: &str,
+    mime_type: &str,
+    data_b64: &str,
+    created_at: i64,
+) -> Result<()> {
+    conn.execute(
+        "INSERT INTO note_images (id, note_id, mime_type, data_b64, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![id, note_id, mime_type, data_b64, created_at],
+    )?;
+    Ok(())
+}
+
+/// Retrieve (mime_type, data_b64) for a single image by ID.
+pub fn get_image(conn: &Connection, id: &str) -> Result<(String, String)> {
+    conn.query_row(
+        "SELECT mime_type, data_b64 FROM note_images WHERE id = ?1",
+        params![id],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )
+}
+
+/// Delete all images that belong to a note (called when the note itself is deleted).
+pub fn delete_images_for_note(conn: &Connection, note_id: &str) -> Result<()> {
+    conn.execute(
+        "DELETE FROM note_images WHERE note_id = ?1",
+        params![note_id],
+    )?;
+    Ok(())
+}
+
 // ── Default seed data ─────────────────────────────────────────────────────────
 
 pub fn seed_defaults(conn: &Connection) -> Result<()> {
@@ -116,6 +176,7 @@ Notium is your **rich knowledge manager** — fast, local, and beautiful.
 - 🏷️ **Tags** for easy organisation
 - 🔍 **Full-text search** across all notes
 - 📌 **Pin** important notes to the top
+- 🖼️ **Images** — embed images directly into any note
 - 💾 **SQLite** — your data lives locally, backed by Rust
 
 ## Markdown Cheatsheet

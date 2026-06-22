@@ -1,9 +1,11 @@
 <script lang="ts">
   import { marked } from 'marked';
   import type { Note } from '$lib/types';
+  import { pickAndStoreImage } from '$lib/storage';
 
   interface Props {
     note: Note;
+    noteId: string;
     view: 'editor' | 'preview';
     onUpdate: (updates: Partial<Note>) => void;
     onViewChange: (v: 'editor' | 'preview') => void;
@@ -11,13 +13,16 @@
     onRemoveTag: (tag: string) => void;
   }
 
-  let { note, view, onUpdate, onViewChange, onAddTag, onRemoveTag }: Props = $props();
+  let { note, noteId, view, onUpdate, onViewChange, onAddTag, onRemoveTag }: Props = $props();
 
   let tagInput = $state('');
   let tagInputEl = $state<HTMLInputElement | undefined>();
   let textareaEl = $state<HTMLTextAreaElement | undefined>();
   let isSaving = $state(false);
+  let isInsertingImage = $state(false);
+  let imageErrorMsg = $state('');
   let saveTimeout: ReturnType<typeof setTimeout>;
+  let errorTimeout: ReturnType<typeof setTimeout>;
   let charCount = $derived(note.content.length);
   let wordCount = $derived(note.content.trim() ? note.content.trim().split(/\s+/).length : 0);
 
@@ -85,6 +90,55 @@
       hour: '2-digit', minute: '2-digit',
     });
   }
+
+  // ── Image insertion ───────────────────────────────────────────────────────────
+
+  function showError(msg: string) {
+    imageErrorMsg = msg;
+    clearTimeout(errorTimeout);
+    errorTimeout = setTimeout(() => { imageErrorMsg = ''; }, 4000);
+  }
+
+  async function insertImage() {
+    if (isInsertingImage) return;
+    isInsertingImage = true;
+    imageErrorMsg = '';
+    try {
+      const img = await pickAndStoreImage(noteId);
+      // Build the markdown snippet
+      const snippet = `![image](notium-img://${img.id})`;
+
+      // Insert at cursor position in editor mode; append if in preview mode
+      if (view === 'editor' && textareaEl) {
+        const ta = textareaEl;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const before = ta.value.substring(0, start);
+        const after = ta.value.substring(end);
+        // Ensure a newline before and after
+        const prefix = before && !before.endsWith('\n') ? '\n' : '';
+        const suffix = after && !after.startsWith('\n') ? '\n' : '';
+        const newContent = before + prefix + snippet + suffix + after;
+        ta.value = newContent;
+        const pos = start + prefix.length + snippet.length + suffix.length;
+        ta.selectionStart = ta.selectionEnd = pos;
+        ta.focus();
+        scheduleUpdate({ content: newContent });
+      } else {
+        // In preview mode, append to the content
+        const newContent = note.content + '\n\n' + snippet + '\n';
+        scheduleUpdate({ content: newContent });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // User cancelled – not an error worth showing
+      if (!msg.toLowerCase().includes('no file selected') && msg !== 'No file selected') {
+        showError(msg);
+      }
+    } finally {
+      isInsertingImage = false;
+    }
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -115,6 +169,37 @@
         </svg>
         Preview
       </button>
+    </div>
+
+    <!-- Centre: Image insert button -->
+    <div class="toolbar-centre">
+      <button
+        id="insert-image-btn"
+        class="img-btn {isInsertingImage ? 'loading' : ''}"
+        onclick={insertImage}
+        disabled={isInsertingImage}
+        title="Insert image (local file)"
+        aria-label="Insert image"
+      >
+        {#if isInsertingImage}
+          <!-- Spinner -->
+          <svg class="spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Embedding…
+        {:else}
+          <!-- Image icon -->
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Insert Image
+        {/if}
+      </button>
+
+      <!-- Error toast inline -->
+      {#if imageErrorMsg}
+        <span class="img-error animate-fade-in">⚠ {imageErrorMsg}</span>
+      {/if}
     </div>
 
     <!-- Status -->
@@ -221,6 +306,7 @@
     padding: 10px 24px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    gap: 12px;
     transition: border-color 0.25s ease;
   }
   .view-toggle {
@@ -254,12 +340,82 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
 
+  /* ── Image button ── */
+  .toolbar-centre {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .img-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.18s ease;
+    white-space: nowrap;
+  }
+  .img-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .img-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.45);
+    color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+  }
+  .img-btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .img-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .img-btn.loading {
+    color: #818cf8;
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+
+  /* Spinner animation */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .spin {
+    animation: spin 0.9s linear infinite;
+  }
+
+  /* Inline error */
+  .img-error {
+    font-size: 11px;
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .editor-status {
     display: flex;
     align-items: center;
     gap: 14px;
     font-size: 11px;
     color: var(--text-faint);
+    flex-shrink: 0;
   }
   .status-saving {
     display: flex;
@@ -383,5 +539,14 @@
     padding: 16px 32px;
     font-size: var(--editor-font-size, 14px);
     transition: font-size 0.2s ease;
+  }
+
+  /* Make images in preview nicely styled */
+  :global(.preview-area img) {
+    max-width: 100%;
+    border-radius: 10px;
+    margin: 12px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    display: block;
   }
 </style>

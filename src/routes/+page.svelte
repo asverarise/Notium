@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Note } from '$lib/types';
-  import { loadNotes, saveNote, deleteNoteById, createNote } from '$lib/storage';
+  import { loadNotes, saveNote, deleteNoteById, deleteNoteImages, createNote } from '$lib/storage';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import Editor from '$lib/components/Editor.svelte';
 
@@ -75,7 +75,8 @@
       activeNoteId = notes[0]?.id ?? null;
     }
     showDeleteConfirm = null;
-    await deleteNoteById(id);
+    // Delete note and its associated image blobs in parallel
+    await Promise.all([deleteNoteById(id), deleteNoteImages(id)]);
   }
 
   async function togglePin(id: string) {
@@ -172,6 +173,7 @@
       {#if activeNote}
         <Editor
           note={activeNote}
+          noteId={activeNote.id}
           {view}
           onUpdate={updateNote}
           onViewChange={(v) => (view = v)}

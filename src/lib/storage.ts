@@ -54,3 +54,34 @@ export async function deleteNoteById(id: string): Promise<void> {
     console.error('[storage] delete_note failed:', e);
   }
 }
+
+// ── Image command wrappers ────────────────────────────────────────────────────
+
+export interface StoredImage {
+  id: string;
+  mimeType: string;
+}
+
+/**
+ * Opens the native OS file picker, reads the selected image, stores it as
+ * Base64 in SQLite (associated with `noteId`), and returns the image ID and
+ * MIME type. The caller should insert `![image](notium-img://ID)` into the
+ * note content at the cursor position.
+ *
+ * Throws if the user cancels the picker or if the file is >10 MB.
+ */
+export async function pickAndStoreImage(noteId: string): Promise<StoredImage> {
+  return await invoke<StoredImage>('pick_and_store_image', { noteId });
+}
+
+/**
+ * Delete all images stored for a note. Call this alongside deleteNoteById
+ * so orphaned image blobs are not left in the database.
+ */
+export async function deleteNoteImages(noteId: string): Promise<void> {
+  try {
+    await invoke('delete_note_images', { noteId });
+  } catch (e) {
+    console.error('[storage] delete_note_images failed:', e);
+  }
+}
